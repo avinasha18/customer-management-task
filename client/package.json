@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite build && vite preview"
   },
+  
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "axios": "^1.7.7",
