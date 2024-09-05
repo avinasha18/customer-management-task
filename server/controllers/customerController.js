@@ -1,17 +1,30 @@
 import Customer from '../models/CustomerModel.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 
+
 export const createCustomer = async (req, res) => {
-  try {
-    const newCustomer = new Customer(req.body);
-    await newCustomer.save();
-    await sendWelcomeEmail(newCustomer);
-    res.status(201).json(newCustomer);
-  } catch (error) {
-    console.log(error.message)
-    res.status(400).json({ message: error.message });
-  }
-};
+    try {
+      // Check if email already exists
+      const existingCustomer = await Customer.findOne({ email: req.body.email });
+      if (existingCustomer) {
+        return res.status(400).json({ message: 'Email is already registered' });
+      }
+  
+      // Create a new customer
+      const newCustomer = new Customer(req.body);
+      
+      // Send welcome email
+      await sendWelcomeEmail(newCustomer);
+      
+      // Save customer to database
+      await newCustomer.save();
+      
+      return res.status(201).json(newCustomer);
+    } catch (error) {
+      console.error(error.message);
+      res.status(400).json({ message: error.message });
+    }
+  };
 
 export const getAllCustomers = async (req, res) => {
   try {

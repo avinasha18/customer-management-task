@@ -6,16 +6,20 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { ToastContainer, toast } from 'react-toastify';
 import Modal from 'react-modal';
-import { handleError } from '../../utils/errorHandler';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Validation schema with Yup
 const schema = yup.object().shape({
   firstName: yup.string().matches(/^[A-Za-z]+$/, 'Only letters are allowed').required('First name is required'),
   lastName: yup.string().matches(/^[A-Za-z]+$/, 'Only letters are allowed').required('Last name is required'),
-  email: yup.string().email('Invalid email format').required('Email is required'),
-  phone: yup.string().matches(/^\d{10}$/, 'Phone number must be 10 digits').required('Phone number is required'),
+  email: yup
+    .string()
+    .email('Invalid email format')
+    .required('Email is required'),
+  phone: yup
+    .string()
+    .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+    .required('Phone number is required'),
 });
 
 Modal.setAppElement('#root');
@@ -23,6 +27,8 @@ Modal.setAppElement('#root');
 function CustomerForm() {
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modalIsOpen, setModalIsOpen] = useState(false); // Modal for errors
+  const [modalMessage, setModalMessage] = useState('');
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -49,7 +55,6 @@ function CustomerForm() {
       setValue('phone', response.data.phone);
       setLoading(false);
     } catch (error) {
-      handleError(error);
       toast.error('Error fetching customer data.');
       setLoading(false);
     }
@@ -61,31 +66,37 @@ function CustomerForm() {
         await axios.put(`https://customer-management-task.onrender.com/api/customers/${id}`, data);
         toast.success('Customer updated successfully!');
       } else {
+        // Check if the email already exists
+        const emailCheckResponse = await axios.post('https://customer-management-task.onrender.com/api/customers/check-email', { email: data.email });
+        if (emailCheckResponse.data.exists) {
+          setModalMessage('This email is already registered.');
+          setModalIsOpen(true); // Open the modal
+          return;
+        }
+
         await axios.post('https://customer-management-task.onrender.com/api/customers', data);
         toast.success('Customer added successfully!');
       }
       navigate('/');
     } catch (error) {
-      handleError(error);
-      toast.error('Error saving customer.');
+      if (error.response && error.response.status === 400) {
+        setModalMessage(error.response.data.message || 'Error saving customer.');
+        setModalIsOpen(true);
+      } else {
+        toast.error('Error saving customer.');
+      }
     }
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-5">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
         {loading ? (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">
-              <Skeleton width={200} />
-            </h2>
-            <div className="space-y-4">
-              <Skeleton height={40} />
-              <Skeleton height={40} />
-              <Skeleton height={40} />
-              <Skeleton height={40} />
-            </div>
-          </div>
+          <div>Loading...</div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <h2 className="text-3xl font-bold text-gray-800">{id ? 'Update Customer' : 'Add Customer'}</h2>
@@ -96,8 +107,8 @@ function CustomerForm() {
               <input
                 type="text"
                 {...register('firstName')}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                className={`w-full p-3 border rounded-lg ${
+                  errors.firstName ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
@@ -109,8 +120,8 @@ function CustomerForm() {
               <input
                 type="text"
                 {...register('lastName')}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                className={`w-full p-3 border rounded-lg ${
+                  errors.lastName ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
@@ -122,8 +133,8 @@ function CustomerForm() {
               <input
                 type="email"
                 {...register('email')}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                className={`w-full p-3 border rounded-lg ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -135,8 +146,8 @@ function CustomerForm() {
               <input
                 type="tel"
                 {...register('phone')}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                className={`w-full p-3 border rounded-lg ${
+                  errors.phone ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
@@ -145,23 +156,26 @@ function CustomerForm() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"
+              className="w-full py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
             >
               {id ? 'Update Customer' : 'Add Customer'}
             </button>
 
             {/* Back to List Link */}
-            { (
-              <Link
-                to="/"
-                className="block text-center text-blue-500 mt-4 hover:underline"
-              >
-                Back to Customer List
-              </Link>
-            )}
+            <Link to="/" className="block text-center text-blue-500 mt-4 hover:underline">
+              Back to Customer List
+            </Link>
           </form>
         )}
       </div>
+
+      {/* Error Modal */}
+      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} className="Modal">
+        <h2 className="text-lg font-bold">Error</h2>
+        <p>{modalMessage}</p>
+        <button onClick={closeModal} className="mt-4 bg-red-500 text-white py-2 px-4 rounded">Close</button>
+      </Modal>
+
       <ToastContainer />
     </div>
   );
