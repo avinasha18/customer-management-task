@@ -63,12 +63,13 @@ function CustomerForm() {
   const onSubmit = async (data) => {
     try {
       if (id) {
-        await axios.put(`https://customer-management-task.onrender.com/api/customers/${id}`, data);
+        const res = await axios.put(`https://customer-management-task.onrender.com/api/customers/${id}`, data);
         toast.success('Customer updated successfully!');
+        console.log(res)
       } else {
         // Check if the email already exists
-        const emailCheckResponse = await axios.post('https://customer-management-task.onrender.com/api/customers/check-email', { email: data.email });
-        if (emailCheckResponse.data.exists) {
+        // const emailCheckResponse = await axios.post('https://customer-management-task.onrender.com/api/customers/check-email', { email: data.email });
+        if (res.data.message === "Email is already registered") {
           setModalMessage('This email is already registered.');
           setModalIsOpen(true); // Open the modal
           return;
