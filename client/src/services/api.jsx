@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://customer-management-task.onrender.com/api';
 
 export const fetchCustomers = async (page = 1, limit = 10, search = '') => {
   try {

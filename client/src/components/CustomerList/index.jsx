@@ -27,7 +27,7 @@ function CustomerList() {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/customers?page=${currentPage}&search=${search}`);
+      const response = await axios.get(`https://customer-management-task.onrender.com/api/customers?page=${currentPage}&search=${search}`);
       setCustomers(response.data.customers);
       setTotalPages(response.data.totalPages);
       setLoading(false);
@@ -39,7 +39,7 @@ function CustomerList() {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/customers/${selectedCustomer}`);
+      await axios.delete(`https://customer-management-task.onrender.com/api/customers/${selectedCustomer}`);
       fetchCustomers();
       toast.success('Customer deleted successfully!');
       setModalIsOpen(false);

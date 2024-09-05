@@ -27,7 +27,7 @@ function CustomerProfile() {
   const fetchCustomer = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/customers/${id}`);
+      const response = await axios.get(`https://customer-management-task.onrender.com/api/customers/${id}`);
       setCustomer(response.data);
     } catch (error) {
       handleError(error);
@@ -39,7 +39,7 @@ function CustomerProfile() {
 
   const handleAddAddress = async (address) => {
     try {
-      await axios.post(`http://localhost:5000/api/customers/${id}/addresses`, address);
+      await axios.post(`https://customer-management-task.onrender.com/api/customers/${id}/addresses`, address);
       fetchCustomer();
       setShowAddressForm(false);
       toast.success('Address added successfully!');
@@ -61,7 +61,7 @@ function CustomerProfile() {
 
   const handleDeleteAddress = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/customers/${id}/addresses/${addressToDelete}`);
+      await axios.delete(`https://customer-management-task.onrender.com/api/customers/${id}/addresses/${addressToDelete}`);
       fetchCustomer();
       toast.success('Address deleted successfully!');
     } catch (error) {

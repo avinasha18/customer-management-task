@@ -41,7 +41,7 @@ function CustomerForm() {
 
   const fetchCustomer = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/customers/${id}`);
+      const response = await axios.get(`https://customer-management-task.onrender.com/api/customers/${id}`);
       setCustomer(response.data);
       setValue('firstName', response.data.firstName);
       setValue('lastName', response.data.lastName);
@@ -58,10 +58,10 @@ function CustomerForm() {
   const onSubmit = async (data) => {
     try {
       if (id) {
-        await axios.put(`http://localhost:5000/api/customers/${id}`, data);
+        await axios.put(`https://customer-management-task.onrender.com/api/customers/${id}`, data);
         toast.success('Customer updated successfully!');
       } else {
-        await axios.post('http://localhost:5000/api/customers', data);
+        await axios.post('https://customer-management-task.onrender.com/api/customers', data);
         toast.success('Customer added successfully!');
       }
       navigate('/');
